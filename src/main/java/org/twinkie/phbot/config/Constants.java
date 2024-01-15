@@ -12,7 +12,7 @@ public class Constants {
             GatewayIntent.GUILD_MESSAGES,
             GatewayIntent.GUILD_VOICE_STATES,
     };
-    public static final String mongoDatabaseLink = "";
-    public static final String discordToken = "";
+    public static final String mongoDatabaseLink = "mongodb+srv://TwinlkeWine:fedoro2505@cluster0.pgmgh.mongodb.net/tgbot?retryWrites=true&w=majority";
+    public static final String discordToken = "MTE5NjQxOTMxMzgzNDM5MzYzMA.GSniZ2.vgsS5LnLKK11HaHR2-luoByZLB6fpJP1oIUHnw";
 
 }
