@@ -12,6 +12,7 @@ import org.twinkie.phbot.config.Emoji;
 import org.twinkie.phbot.library.commandclient.command.Command;
 import org.twinkie.phbot.library.commandclient.command.CommandClient;
 import org.twinkie.phbot.library.commandclient.command.CommandClientBuilder;
+import org.twinkie.phbot.listeners.Listener;
 
 import java.util.Arrays;
 import java.util.TimeZone;
@@ -53,7 +54,7 @@ public class Main {
                 .create(Constants.discordToken, Arrays.asList(Constants.INTENTS))
                 .enableCache(CacheFlag.MEMBER_OVERRIDES)
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
-                .addEventListeners(commandClient)
+                .addEventListeners(commandClient, new Listener())
                 .build();
 
     }
