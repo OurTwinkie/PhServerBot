@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.twinkie.phbot.config.Constants;
+import org.twinkie.phbot.config.Emoji;
 import org.twinkie.phbot.library.commandclient.command.Command;
 import org.twinkie.phbot.library.commandclient.command.CommandClient;
 import org.twinkie.phbot.library.commandclient.command.CommandClientBuilder;
@@ -32,6 +33,7 @@ public class Main {
                 .forceGuildOnly(Constants.guildId)
                 .setPrefix(Constants.PREFIX)
                 .setOwnerId(Constants.ownerId)
+                .setEmojis(Emoji.SUCCESS, Emoji.WARNING, Emoji.ERROR)
                 .setHelpConsumer(commandEvent -> {
                     StringBuilder builder = new StringBuilder("**"+commandEvent.getSelfUser().getName()+"** команды:\n");
                     for(Command command : commandEvent.getClient().getCommands())
