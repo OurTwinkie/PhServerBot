@@ -32,7 +32,6 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.dv8tion.jda.internal.utils.Checks;
 import org.twinkie.phbot.library.commandclient.commons.waiter.EventWaiter;
 
-import java.awt.Menu;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -43,7 +42,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
- * A {@link java.awt.Menu Menu} implementation, nearly identical
+ * A {@link Menu Menu} implementation, nearly identical
  * to {@link Paginator Paginator}, that displays an
  * individual image on each page instead of a list of text items.<p>
  *
@@ -53,7 +52,7 @@ import java.util.function.Consumer;
  *
  * @author John Grosh
  */
-public class Slideshow extends java.awt.Menu
+public class Slideshow extends Menu
 {
     private final BiFunction<Integer,Integer,Color> color;
     private final BiFunction<Integer,Integer,String> text;
@@ -356,7 +355,7 @@ public class Slideshow extends java.awt.Menu
     }
 
     /**
-     * The {@link java.awt.Menu.Builder Menu.Builder} for
+     * The {@link Builder Menu.Builder} for
      * a {@link Slideshow Slideshow}.
      *
      * @author John Grosh

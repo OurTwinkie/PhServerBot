@@ -30,7 +30,6 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.dv8tion.jda.internal.utils.Checks;
 import org.twinkie.phbot.library.commandclient.commons.waiter.EventWaiter;
 
-import java.awt.Menu;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -48,7 +47,7 @@ import java.util.function.Function;
  *
  * @author John Grosh
  */
-public class SelectionDialog extends java.awt.Menu
+public class SelectionDialog extends Menu
 {
     private final List<String> choices;
     private final String leftEnd, rightEnd;
@@ -246,7 +245,7 @@ public class SelectionDialog extends java.awt.Menu
     }
 
     /**
-     * The {@link java.awt.Menu.Builder Menu.Builder} for
+     * The {@link Builder Menu.Builder} for
      * a {@link SelectionDialog SelectuibDialog}.
      *
      * @author John Grosh
