@@ -83,7 +83,7 @@ public abstract class Command extends Interaction
      * A small help String that summarizes the function of the command, used in the default help builder,
      * and shown in the client for Slash Commands.
      */
-    protected String help = "no help available";
+    protected String help = "нет указания поробностей";
 
     /**
      * The {@link Category Category} of the command.

@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.twinkie.phbot.config.Constants;
+import org.twinkie.phbot.library.commandclient.command.Command;
 import org.twinkie.phbot.library.commandclient.command.CommandClient;
 import org.twinkie.phbot.library.commandclient.command.CommandClientBuilder;
 
@@ -29,6 +30,20 @@ public class Main {
                 .forceGuildOnly(Constants.guildId)
                 .setPrefix(Constants.PREFIX)
                 .setOwnerId(Constants.ownerId)
+                .setHelpConsumer(commandEvent -> {
+                    StringBuilder builder = new StringBuilder("**"+commandEvent.getSelfUser().getName()+"** команды:\n");
+                    for(Command command : commandEvent.getClient().getCommands())
+                    {
+                        if(!command.isHidden() && (!command.isOwnerCommand() || commandEvent.isOwner()))
+                        {
+
+                            builder.append("\n`").append(Constants.PREFIX).append(command.getName())
+                                    .append(command.getArguments()==null ? "`" : " "+command.getArguments()+"`")
+                                    .append(" - ").append(command.getHelp());
+                        }
+                    }
+                    commandEvent.reply(builder.toString());
+                })
                 .build();
         JDA jda = JDABuilder
                 .create(Constants.discordToken, Arrays.asList(Constants.INTENTS))
