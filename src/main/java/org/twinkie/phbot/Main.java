@@ -34,6 +34,7 @@ public class Main {
                 .forceGuildOnly(Constants.guildId)
                 .setPrefix(Constants.PREFIX)
                 .setOwnerId(Constants.ownerId)
+                .setCoOwnerIds(Constants.adminIds)
                 .setEmojis(Emoji.SUCCESS, Emoji.WARNING, Emoji.ERROR)
                 .setHelpConsumer(commandEvent -> {
                     StringBuilder builder = new StringBuilder("**"+commandEvent.getSelfUser().getName()+"** команды:\n");

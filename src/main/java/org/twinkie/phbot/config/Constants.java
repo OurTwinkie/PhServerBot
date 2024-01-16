@@ -17,6 +17,7 @@ public class Constants {
     //server config
     public static final String ruleButtonId = "";
     public static final long ruleAcceptedRoleId = 0L;
+    public static final long[] adminIds = new long[]{0L};
 
     //secret
     public static final String mongoDatabaseLink = "mongodb+srv://TwinlkeWine:fedoro2505@cluster0.pgmgh.mongodb.net/tgbot?retryWrites=true&w=majority";
