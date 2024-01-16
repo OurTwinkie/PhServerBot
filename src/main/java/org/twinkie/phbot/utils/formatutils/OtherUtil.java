@@ -1,9 +1,9 @@
 
-package org.twinkie.phbot.utils.FormatUtils;
+package org.twinkie.phbot.utils.formatutils;
 
 import net.dv8tion.jda.api.entities.Member;
 import org.bson.Document;
-import org.twinkie.phbot.utils.databaseUtils.UserInfo;
+import org.twinkie.phbot.utils.databaseutils.UserInfo;
 
 
 public class OtherUtil

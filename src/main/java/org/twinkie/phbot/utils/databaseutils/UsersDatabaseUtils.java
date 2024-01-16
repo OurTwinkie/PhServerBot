@@ -1,4 +1,4 @@
-package org.twinkie.phbot.utils.databaseUtils;
+package org.twinkie.phbot.utils.databaseutils;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -6,7 +6,7 @@ import com.mongodb.client.model.Filters;
 import net.dv8tion.jda.api.entities.Member;
 import org.bson.Document;
 import org.twinkie.phbot.Main;
-import org.twinkie.phbot.utils.FormatUtils.OtherUtil;
+import org.twinkie.phbot.utils.formatutils.OtherUtil;
 
 public class UsersDatabaseUtils {
     private UsersDatabaseUtils() {

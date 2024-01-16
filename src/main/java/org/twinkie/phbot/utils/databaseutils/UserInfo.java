@@ -1,4 +1,4 @@
-package org.twinkie.phbot.utils.databaseUtils;
+package org.twinkie.phbot.utils.databaseutils;
 
 import lombok.Getter;
 
