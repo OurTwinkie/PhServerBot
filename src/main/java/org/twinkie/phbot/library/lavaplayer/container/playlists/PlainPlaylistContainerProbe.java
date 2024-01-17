@@ -1,5 +1,7 @@
 package org.twinkie.phbot.library.lavaplayer.container.playlists;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.twinkie.phbot.library.lavaplayer.container.MediaContainerDetectionResult;
 import org.twinkie.phbot.library.lavaplayer.container.MediaContainerHints;
 import org.twinkie.phbot.library.lavaplayer.container.MediaContainerProbe;
@@ -8,8 +10,6 @@ import org.twinkie.phbot.library.lavaplayer.tools.io.SeekableInputStream;
 import org.twinkie.phbot.library.lavaplayer.track.AudioReference;
 import org.twinkie.phbot.library.lavaplayer.track.AudioTrack;
 import org.twinkie.phbot.library.lavaplayer.track.AudioTrackInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

@@ -1,8 +1,8 @@
 package org.twinkie.phbot.library.lavaplayer.track.playback;
 
-import org.twinkie.phbot.library.lavaplayer.format.AudioDataFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.twinkie.phbot.library.lavaplayer.format.AudioDataFormat;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;

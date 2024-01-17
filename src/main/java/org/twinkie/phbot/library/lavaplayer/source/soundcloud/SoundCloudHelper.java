@@ -1,5 +1,8 @@
 package org.twinkie.phbot.library.lavaplayer.source.soundcloud;
 
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.twinkie.phbot.library.lavaplayer.tools.ExceptionTools;
 import org.twinkie.phbot.library.lavaplayer.tools.FriendlyException;
 import org.twinkie.phbot.library.lavaplayer.tools.JsonBrowser;
@@ -7,9 +10,6 @@ import org.twinkie.phbot.library.lavaplayer.tools.io.HttpClientTools;
 import org.twinkie.phbot.library.lavaplayer.tools.io.HttpInterface;
 import org.twinkie.phbot.library.lavaplayer.tools.io.PersistentHttpStream;
 import org.twinkie.phbot.library.lavaplayer.track.AudioReference;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.HttpClientContext;
 
 import java.io.IOException;
 import java.net.URI;

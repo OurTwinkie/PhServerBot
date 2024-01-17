@@ -28,8 +28,8 @@ import org.twinkie.phbot.library.commandclient.command.CommandEvent;
 import org.twinkie.phbot.library.commandclient.commons.waiter.EventWaiter;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 

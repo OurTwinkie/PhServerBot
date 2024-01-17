@@ -17,7 +17,6 @@ package org.twinkie.phbot.library.commandclient.command.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.twinkie.phbot.library.commandclient.command.AnnotatedModuleCompiler;
 import org.twinkie.phbot.library.commandclient.command.Command;
 import org.twinkie.phbot.library.commandclient.command.CommandBuilder;

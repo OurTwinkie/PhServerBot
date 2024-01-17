@@ -1,5 +1,12 @@
 package org.twinkie.phbot.library.lavaplayer.source.youtube;
 
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.twinkie.phbot.library.lavaplayer.player.AudioPlayerManager;
 import org.twinkie.phbot.library.lavaplayer.source.AudioSourceManager;
 import org.twinkie.phbot.library.lavaplayer.tools.DataFormatTools;
@@ -15,13 +22,6 @@ import org.twinkie.phbot.library.lavaplayer.track.AudioItem;
 import org.twinkie.phbot.library.lavaplayer.track.AudioReference;
 import org.twinkie.phbot.library.lavaplayer.track.AudioTrack;
 import org.twinkie.phbot.library.lavaplayer.track.AudioTrackInfo;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.DataInput;
 import java.io.DataOutput;

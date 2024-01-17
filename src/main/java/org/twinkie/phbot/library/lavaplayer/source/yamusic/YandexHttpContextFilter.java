@@ -1,11 +1,11 @@
 package org.twinkie.phbot.library.lavaplayer.source.yamusic;
 
-import org.twinkie.phbot.library.lavaplayer.tools.http.HttpContextFilter;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.BasicCookieStore;
+import org.twinkie.phbot.library.lavaplayer.tools.http.HttpContextFilter;
 
 public class YandexHttpContextFilter implements HttpContextFilter {
 

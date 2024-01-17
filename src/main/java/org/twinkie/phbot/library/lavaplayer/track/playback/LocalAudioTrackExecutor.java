@@ -1,13 +1,13 @@
 package org.twinkie.phbot.library.lavaplayer.track.playback;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.twinkie.phbot.library.lavaplayer.format.AudioDataFormat;
 import org.twinkie.phbot.library.lavaplayer.player.AudioConfiguration;
 import org.twinkie.phbot.library.lavaplayer.player.AudioPlayerOptions;
 import org.twinkie.phbot.library.lavaplayer.tools.ExceptionTools;
 import org.twinkie.phbot.library.lavaplayer.tools.FriendlyException;
 import org.twinkie.phbot.library.lavaplayer.track.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.InterruptedIOException;
 import java.util.concurrent.TimeUnit;
