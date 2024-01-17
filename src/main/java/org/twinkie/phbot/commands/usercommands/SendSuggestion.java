@@ -40,7 +40,7 @@ public class SendSuggestion extends Command {
         this.name = "suggestion";
         this.aliases = new String[]{"idea"};
         this.help = "отправить предложение";
-        this.cooldown = 160;
+        this.cooldown = 60;
         this.cooldownScope = CooldownScope.USER;
         this.mongoDatabase = mongoDatabase;
     }
@@ -54,7 +54,7 @@ public class SendSuggestion extends Command {
                 .build();
         Message message = event.getMessage().reply(messageCreateData).complete();
         TextInput subject = TextInput.create("suggestion", "Предложение", TextInputStyle.PARAGRAPH)
-                .setPlaceholder("Subject of this ticket")
+                .setPlaceholder("Ваша прекрасная идея")
                 .setMinLength(20)
                 .setMaxLength(500)
                 .build();
@@ -100,22 +100,24 @@ public class SendSuggestion extends Command {
                     MessageEmbed messageEmbed = new EmbedBuilder()
                             .setColor(Color.YELLOW)
                             .setTitle("Предложение #" + suggestionsCount)
-                            .setAuthor(author.getEffectiveName(), author.getAvatarUrl(), author.getAvatarUrl())
+                            .setAuthor(author.getGlobalName(), author.getAvatarUrl(), author.getAvatarUrl())
                             .setDescription(args)
                             .setFooter(guild.getName(), guild.getIconUrl())
                             .build();
                     MessageCreateData createData = new MessageCreateBuilder()
                             .addEmbeds(messageEmbed)
-                            .addComponents(ActionRow.of(Button.primary(suggestionChannel + "yes", "⬆\uFE0F"), Button.danger(suggestionChannel + "no", "⬇\uFE0F")))
                             .build();
                     Message message = suggestionChannel.sendMessage(createData).complete();
+                    message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("⬆\uFE0F")).queue();
+                    message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("⬇\uFE0F")).queue();
                     Document document = new Document("number", suggestionsCount)
                             .append("text", args)
                             .append("memberId", author.getId())
                             .append("messageId", message.getId())
                             .append("for", 0)
                             .append("against", 0)
-                            .append("time", System.currentTimeMillis());
+                            .append("time", System.currentTimeMillis())
+                            .append("guildId", guild.getId());
                     documentMongoCollection.insertOne(document);
                     modalInteractionEvent.reply(Emoji.SUCCESS + " Ваше предложение отправлено.").setEphemeral(true).queue();
                     event.reactSuccess();
