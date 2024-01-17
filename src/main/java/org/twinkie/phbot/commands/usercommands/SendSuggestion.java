@@ -59,7 +59,7 @@ public class SendSuggestion extends Command {
                 .setMaxLength(500)
                 .build();
 
-        Modal modal = Modal.create("suggestionModal", "Modmail")
+        Modal modal = Modal.create("suggestionModal", "Создание предложения")
                 .addActionRow(subject)
                 .build();
         waiter.waitForEvent(ButtonInteractionEvent.class,
