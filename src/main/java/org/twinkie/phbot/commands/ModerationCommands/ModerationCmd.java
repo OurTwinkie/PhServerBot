@@ -1,8 +1,10 @@
 package org.twinkie.phbot.commands.ModerationCommands;
 
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -15,8 +17,10 @@ import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import org.bson.Document;
 import org.twinkie.phbot.commands.commandscategory.ModerationCategory;
+import org.twinkie.phbot.config.Emoji;
 import org.twinkie.phbot.library.commandclient.command.CommandClient;
 import org.twinkie.phbot.library.commandclient.command.CommandEvent;
 import org.twinkie.phbot.library.commandclient.commons.utils.FinderUtil;
@@ -24,7 +28,6 @@ import org.twinkie.phbot.library.commandclient.commons.waiter.EventWaiter;
 import org.twinkie.phbot.utils.formatutils.FormatUtil;
 
 import java.awt.*;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -34,10 +37,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class ModerationCmd extends ModerationCategory {
     private final EventWaiter waiter;
-    private static final String[] adminRoles = Constants.moderationAdminRoles;
-    private static final String[] staffRoles = Constants.moderationStaffRoles;
-    public ModerationCmd(EventWaiter waiter) {
+    private final MongoDatabase database;
+    public ModerationCmd(MongoDatabase database, EventWaiter waiter) {
         this.waiter = waiter;
+        this.database = database;
         this.name = "moderation";
         this.guildOnly = true;
         this.help = "использовать возможности модерации";
@@ -109,55 +112,45 @@ public class ModerationCmd extends ModerationCategory {
                 selectMenuInteractionEvent ->
                 {
                     messageEditBuilder.setActionRow(selectMenu.asDisabled());
-                    selectMenuInteractionEvent.getMessage().editMessage(messageEditBuilder.build()).complete();
+                    selectMenuInteractionEvent.getMessage().editMessage(MessageEditData.fromCreateData(messageEditBuilder.build())).complete();
                     String value = selectMenuInteractionEvent.getSelectedOptions().get(0).getValue();
                     if (value.equals("ban"))
                     {
-                        ban(mentionedMember.getUser(), event.getMember(), selectMenuInteractionEvent, event.getClient(), adminRoles);
+                        ban(mentionedMember.getUser(), event.getMember(), selectMenuInteractionEvent, event.getClient());
                         return;
                     }
                     if (value.equals("unBan"))
                     {
-                        unban(mentionedMember.getUser(), event.getMember(), selectMenuInteractionEvent, event.getClient(), adminRoles);
+                        unban(mentionedMember.getUser(), event.getMember(), selectMenuInteractionEvent, event.getClient());
                         return;
                     }
                     if (value.equals("kick"))
                     {
-                        kick(mentionedMember.getUser(), event.getMember(), selectMenuInteractionEvent, event.getClient(), adminRoles);
-                        return;
-                    }
-                    if (value.equals("voiceMute"))
-                    {
-                        voiceMute(mentionedMember, event.getMember(), selectMenuInteractionEvent, event.getClient(), voiceMuteRole, staffRoles);
-                        return;
-                    }
-                    if (value.equals("voiceUnMute"))
-                    {
-                        voiceUnMute(mentionedMember, event.getMember(), selectMenuInteractionEvent, event.getClient(), voiceMuteRole, staffRoles);
+                        kick(mentionedMember.getUser(), event.getMember(), selectMenuInteractionEvent, event.getClient());
                         return;
                     }
                     if (value.equals("mute"))
                     {
-                        textMute(mentionedMember, event.getMember(), selectMenuInteractionEvent, event.getClient(), muteRole, staffRoles);
+                        textMute(mentionedMember.getUser(), event.getMember(), selectMenuInteractionEvent, event.getClient());
                         return;
                     }
                     if (value.equals("unMute"))
                     {
-                        textUnMute(mentionedMember, event.getMember(), selectMenuInteractionEvent, event.getClient(), muteRole, staffRoles);
+                        textUnMute(mentionedMember.getUser(), event.getMember(), selectMenuInteractionEvent, event.getClient());
                         return;
                     }
                     if (value.equals("warn"))
                     {
-                        warn(mentionedMember, event.getMember(), selectMenuInteractionEvent, event.getClient(), localBanRole, staffRoles);
+                        warn(mentionedMember.getUser(), event.getMember(), selectMenuInteractionEvent, event.getClient());
                         return;
                     }
                     if (value.equals("unWarn"))
                     {
-                        unWarn(mentionedMember.getUser(), event.getMember(), selectMenuInteractionEvent, event.getClient(), staffRoles);
+                        unWarn(mentionedMember.getUser(), event.getMember(), selectMenuInteractionEvent, event.getClient());
                         return;
                     }
                     if (value.equals("info")) {
-                        getInfo(mentionedMember.getUser(), event.getMember(), selectMenuInteractionEvent, event.getClient(), staffRoles);
+                        getInfo(mentionedMember.getUser(), event.getMember(), selectMenuInteractionEvent);
                         return;
                     }
                 },
@@ -170,9 +163,9 @@ public class ModerationCmd extends ModerationCategory {
 
     }
 
-    private void getInfo(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client, String[] adminRoles) {
-        if (checkRolePermission(adminRoles, member)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "У вас нет прав на просмотр информации о пользователе.");
+    private void getInfo(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent) {
+        if (member.hasPermission(Permission.MODERATE_MEMBERS) && member.canInteract(Objects.requireNonNull(Objects.requireNonNull(selectMenuInteractionEvent.getGuild()).getMember(mentionedMember)))) {
+            selectMenuInteractionEvent.reply(Emoji.ERROR + "У вас нет прав на просмотр информации о пользователе.").complete();
             return;
         }
 
@@ -196,13 +189,6 @@ public class ModerationCmd extends ModerationCategory {
                     .append("`")
                     .append("\n");
         }
-        time = getTimer("voiceMute", mentionedMember);
-        if (time != -1) {
-            stringBuilder.append("Время голосового мьюта: `")
-                    .append(FormatUtil.formatTime(time * 60000L))
-                    .append("`")
-                    .append("\n");
-        }
 
 
         EmbedBuilder embedBuilder = new EmbedBuilder().setTitle("Информация о " + FormatUtil.formatUser(mentionedMember))
@@ -214,105 +200,9 @@ public class ModerationCmd extends ModerationCategory {
         selectMenuInteractionEvent.reply(MessageCreateData.fromEmbeds(embedBuilder.build())).complete();
     }
 
-    private void unLocalBan(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client, String localBanRoleId, String[] adminRoles) {
-        if (checkRolePermission(adminRoles, member)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "У вас нет прав на снятие локал-бана у пользователя.");
-            return;
-        }
-        Member mentioned = member.getGuild().getMemberById(mentionedMember.getId());
-        Role role = member.getGuild().getRoleById(localBanRoleId);
-        if (role == null) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "Произошла ошибка при выполнении команды. Не найдена роль.");
-            return;
-        }
-        if (!mentioned.getRoles().contains(role)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "У пользователя нет локал-бана.");
-            return;
-        }
-
-        TextInput reason = TextInput.create("windowUnLocalBan", "Причина снятия локал-бана:", TextInputStyle.PARAGRAPH)
-                .setPlaceholder("Напишите причину снятия локал-бана здесь")
-                .setMinLength(1)
-                .setMaxLength(400)
-                .setRequired(false)
-                .build();
-
-
-        Modal modal = Modal.create("unLocalBanModal", "Дополнительный ввод")
-                .addActionRow(reason)
-                .build();
-        selectMenuInteractionEvent.replyModal(modal).complete();
-
-        waiter.waitForEvent(ModalInteractionEvent.class,
-                modalInteractionEvent -> checkModalMember(modalInteractionEvent, member, selectMenuInteractionEvent.getMessage(), modal.getId()),
-                modalInteractionEvent ->
-                {
-                    String answer = Objects.requireNonNull(modalInteractionEvent.getValue("windowUnLocalBan"))
-                            .getAsString();
-                    if (answer.length() != 0) {
-                        modalInteractionEvent.reply(client.getSuccess() + "У пользователя " + FormatUtil.formatUser(mentionedMember) + " был снят локал-бан по причине: " + answer).complete();
-                        member.getGuild().removeRoleFromMember(mentionedMember, role).reason(answer  + " UnLocalBan by: " + FormatUtil.formatUser(member.getUser())).complete();
-                    }
-                    else {
-                        modalInteractionEvent.reply(client.getSuccess() + "У пользователя " + FormatUtil.formatUser(mentionedMember) + " был снят локал-бан.").complete();
-                        member.getGuild().removeRoleFromMember(mentionedMember, role).reason("UnLocalBan by: " + FormatUtil.formatUser(member.getUser())).complete();
-                    }
-
-                },5,TimeUnit.MINUTES,() -> {});
-
-    }
-
-    private void localBan(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client, String localBanRoleId, String[] adminRoles) {
-        if (checkRolePermission(adminRoles, member)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "У вас нет прав на выдачу локал-банов пользователям.");
-            return;
-        }
-
-        Member mentioned = member.getGuild().getMemberById(mentionedMember.getId());
-        Role role = member.getGuild().getRoleById(localBanRoleId);
-        if (role == null) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "Произошла ошибка при выполнении команды. Не найдена роль.");
-            return;
-        }
-        if (mentioned.getRoles().contains(role)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "Пользователь уже получил локал-бан.");
-            return;
-        }
-
-        TextInput reason = TextInput.create("windowLocalBan", "Причина локал-бан:", TextInputStyle.PARAGRAPH)
-                .setPlaceholder("Напишите причину локал-бана здесь")
-                .setMinLength(1)
-                .setMaxLength(400)
-                .setRequired(false)
-                .build();
-
-        Modal modal = Modal.create("localBanModal", "Дополнительный ввод")
-                .addActionRow(reason)
-                .build();
-        selectMenuInteractionEvent.replyModal(modal).complete();
-
-        waiter.waitForEvent(ModalInteractionEvent.class,
-                modalInteractionEvent -> checkModalMember(modalInteractionEvent, member, selectMenuInteractionEvent.getMessage(), modal.getId()),
-                modalInteractionEvent ->
-                {
-                    String answer = Objects.requireNonNull(modalInteractionEvent.getValue("windowLocalBan"))
-                            .getAsString();
-                    if (answer.length() != 0) {
-                        modalInteractionEvent.reply(client.getSuccess() + "Пользователю " + FormatUtil.formatUser(mentionedMember) + " был выдан локал-бан по причине: " + answer).complete();
-                        member.getGuild().addRoleToMember(mentionedMember, role).reason(answer  + " Local-Ban by: " + FormatUtil.formatUser(member.getUser())).complete();
-                    }
-                    else {
-                        modalInteractionEvent.reply(client.getSuccess() + "Пользователю " + FormatUtil.formatUser(mentionedMember) + " был выдан локал-бан.").complete();
-                        member.getGuild().addRoleToMember(mentionedMember, role).reason("Local-Ban by: " + FormatUtil.formatUser(member.getUser())).complete();
-                    }
-
-                });
-
-    }
-
-    private void warn(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client, String localBanRoleId, String[] adminRoles) {
-        if (checkRolePermission(adminRoles, member)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "У вас нет прав на выдачу варнов пользователям.");
+    private void warn(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client) {
+        if (member.hasPermission(Permission.MODERATE_MEMBERS) && member.canInteract(Objects.requireNonNull(Objects.requireNonNull(selectMenuInteractionEvent.getGuild()).getMember(mentionedMember)))) {
+            selectMenuInteractionEvent.reply(Emoji.ERROR + "У вас нет прав на выдачу варнов пользователям.").complete();
             return;
         }
 
@@ -322,18 +212,14 @@ public class ModerationCmd extends ModerationCategory {
         selectMenuInteractionEvent.reply(messageCreateBuilder.build()).complete();
 
         if (getWarnCount(mentionedMember) >= 3) {
-            Role role = member.getGuild().getRoleById(localBanRoleId);
-            if (role == null) {
-                return;
-            }
-            member.getGuild().addRoleToMember(mentionedMember, role).reason("3 warns").complete();
+            member.getGuild().ban(mentionedMember,0, TimeUnit.SECONDS).reason("3 warns").complete();
             return;
         }
     }
 
-    private void unWarn(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client, String[] adminRoles) {
-        if (checkRolePermission(adminRoles, member)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "У вас нет прав на выдачу варнов пользователям.");
+    private void unWarn(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client) {
+        if (member.hasPermission(Permission.MODERATE_MEMBERS) && member.canInteract(Objects.requireNonNull(Objects.requireNonNull(selectMenuInteractionEvent.getGuild()).getMember(mentionedMember)))) {
+            selectMenuInteractionEvent.reply(Emoji.ERROR + "У вас нет прав на выдачу варнов пользователям.").complete();
             return;
         }
 
@@ -343,19 +229,14 @@ public class ModerationCmd extends ModerationCategory {
         selectMenuInteractionEvent.reply(messageCreateBuilder.build()).complete();
     }
 
-    private void textUnMute(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client, String muteRoleId, String[] roleAdmin) {
-        if (checkRolePermission(adminRoles, member)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "У вас нет прав на мьют пользователя.");
+    private void textUnMute(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client) {
+        if (member.hasPermission(Permission.MODERATE_MEMBERS) && member.canInteract(Objects.requireNonNull(Objects.requireNonNull(selectMenuInteractionEvent.getGuild()).getMember(mentionedMember)))) {
+            selectMenuInteractionEvent.reply(Emoji.ERROR + "У вас нет прав на мьют пользователя.").complete();
             return;
         }
         Member mentioned = member.getGuild().getMemberById(mentionedMember.getId());
-        Role role = member.getGuild().getRoleById(muteRoleId);
-        if (role == null) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "Произошла ошибка при выполнении команды. Не найдена роль.");
-            return;
-        }
-        if (!mentioned.getRoles().contains(role)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "У пользователя нет мьюта.");
+        if (!mentioned.isTimedOut()) {
+            selectMenuInteractionEvent.reply(Emoji.ERROR + "У пользователя нет мьюта.").complete();
             return;
         }
 
@@ -378,33 +259,28 @@ public class ModerationCmd extends ModerationCategory {
                 {
                     String answer = Objects.requireNonNull(modalInteractionEvent.getValue("windowUnMute"))
                             .getAsString();
-                    removeTimerFromDatabase("mute", mentionedMember);
                     if (answer.length() != 0) {
                         modalInteractionEvent.reply(client.getSuccess() + "Пользователь " + FormatUtil.formatUser(mentionedMember) + " был размьючен по причине: " + answer).complete();
-                        member.getGuild().removeRoleFromMember(mentionedMember, role).reason(answer  + " UnMute by: " + FormatUtil.formatUser(member.getUser())).complete();
+                        member.getGuild().removeTimeout(mentionedMember).reason(answer  + " UnMute by: " + FormatUtil.formatUser(member.getUser())).complete();
                     }
                     else {
                         modalInteractionEvent.reply(client.getSuccess() + "Пользователь " + FormatUtil.formatUser(mentionedMember) + " был размьючен.").complete();
-                        member.getGuild().removeRoleFromMember(mentionedMember, role).reason("UnMute by: " + FormatUtil.formatUser(member.getUser())).complete();
+                        member.getGuild().removeTimeout(mentionedMember).reason("UnMute by: " + FormatUtil.formatUser(member.getUser())).complete();
                     }
 
                 },5,TimeUnit.MINUTES,() -> {});
 
     }
 
-    private void textMute(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client, String muteRoleId, String[] adminRoles) {
-        if (checkRolePermission(adminRoles, member)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "У вас нет прав на мьют пользователя.");
+    private void textMute(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client) {
+        if (member.hasPermission(Permission.MODERATE_MEMBERS) && member.canInteract(Objects.requireNonNull(Objects.requireNonNull(selectMenuInteractionEvent.getGuild()).getMember(mentionedMember)))) {
+            selectMenuInteractionEvent.reply(Emoji.ERROR + "У вас нет прав на мьют пользователя.").complete();
             return;
         }
+
         Member mentioned = member.getGuild().getMemberById(mentionedMember.getId());
-        Role role = member.getGuild().getRoleById(muteRoleId);
-        if (role == null) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "Произошла ошибка при выполнении команды. Не найдена роль.");
-            return;
-        }
-        if (mentioned.getRoles().contains(muteRoleId)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "Пользователь уже получил мьют.");
+        if (mentioned.isTimedOut()) {
+            selectMenuInteractionEvent.reply(Emoji.ERROR + "Пользователь уже получил мьют.").complete();
             return;
         }
 
@@ -465,18 +341,17 @@ public class ModerationCmd extends ModerationCategory {
                             }
                         }
                         if (atomicBoolean.get()) {
-                            addTimerToDatabase("mute", atomicInteger.get(), mentionedMember);
                             if (answer.length() != 0) {
                                 modalInteractionEvent.reply(client.getSuccess() + "Пользователь " + FormatUtil.formatUser(mentionedMember) + " был замьючен по причине: " + answer + " `На время: " + FormatUtil.formatTime(atomicInteger.get()*60000L) + "`").complete();
-                                member.getGuild().addRoleToMember(mentionedMember, role).reason(answer  + " Mute by: " + FormatUtil.formatUser(member.getUser()) + " Time: " + FormatUtil.formatTime(atomicInteger.get()*60000L)).complete();
+                                member.getGuild().timeoutFor(mentionedMember, atomicInteger.get(), TimeUnit.MINUTES).reason(answer  + " Mute by: " + FormatUtil.formatUser(member.getUser()) + " Time: " + FormatUtil.formatTime(atomicInteger.get()*60000L)).complete();
                             }
                             else {
                                 modalInteractionEvent.reply(client.getSuccess() + "Пользователь " + FormatUtil.formatUser(mentionedMember) + " был замьючен." + " `На время: " + FormatUtil.formatTime(atomicInteger.get()*60000L) + "`").complete();
-                                member.getGuild().addRoleToMember(mentionedMember, role).reason("Mute by: " + FormatUtil.formatUser(member.getUser()) + " Time: " + FormatUtil.formatTime(atomicInteger.get()*60000L)).complete();
+                                member.getGuild().timeoutFor(mentionedMember, atomicInteger.get(), TimeUnit.MINUTES).reason("Mute by: " + FormatUtil.formatUser(member.getUser()) + " Time: " + FormatUtil.formatTime(atomicInteger.get()*60000L)).complete();
                             }
                         }
                         else {
-                            ReplyUtil.replyError(modalInteractionEvent, client, "Время не может быть определено, проверьте правильность ввода.");
+                            modalInteractionEvent.reply(Emoji.ERROR + "Время не может быть определено, проверьте правильность ввода.").complete();
                         }
                     }
 
@@ -484,151 +359,9 @@ public class ModerationCmd extends ModerationCategory {
 
     }
 
-    private void voiceUnMute(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client, String muteRoleId, String[] adminRoles) {
-        if (checkRolePermission(adminRoles, member)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "У вас нет прав на мьют пользователя.");
-            return;
-        }
-        Member mentioned = member.getGuild().getMemberById(mentionedMember.getId());
-        Role role = member.getGuild().getRoleById(muteRoleId);
-        if (role == null) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "Произошла ошибка при выполнении команды. Не найдена роль.");
-            return;
-        }
-        if (!mentioned.getRoles().contains(muteRoleId)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "У пользователя нет мьюта.");
-            return;
-        }
-
-        TextInput reason = TextInput.create("windowUnMute", "Причина размьюта:", TextInputStyle.PARAGRAPH)
-                .setPlaceholder("Напишите причину размьюта здесь")
-                .setMinLength(1)
-                .setMaxLength(400)
-                .setRequired(false)
-                .build();
-
-
-        Modal modal = Modal.create("unMuteModal", "Дополнительный ввод")
-                .addActionRow(reason)
-                .build();
-        selectMenuInteractionEvent.replyModal(modal).complete();
-
-        waiter.waitForEvent(ModalInteractionEvent.class,
-                modalInteractionEvent -> checkModalMember(modalInteractionEvent, member, selectMenuInteractionEvent.getMessage(), modal.getId()),
-                modalInteractionEvent ->
-                {
-                    String answer = Objects.requireNonNull(modalInteractionEvent.getValue("windowUnMute"))
-                            .getAsString();
-                    removeTimerFromDatabase("voiceMute", mentionedMember);
-                    if (answer.length() != 0) {
-                        modalInteractionEvent.reply(client.getSuccess() + "Пользователь " + FormatUtil.formatUser(mentionedMember) + " был размьючен по причине: " + answer).complete();
-                        member.getGuild().removeRoleFromMember(mentionedMember, role).reason(answer  + " VoiceUnMute by: " + FormatUtil.formatUser(member.getUser())).complete();
-                    }
-                    else {
-                        modalInteractionEvent.reply(client.getSuccess() + "Пользователь " + FormatUtil.formatUser(mentionedMember) + " был размьючен.").complete();
-                        member.getGuild().removeRoleFromMember(mentionedMember, role).reason("VoiceUnMute by: " + FormatUtil.formatUser(member.getUser())).complete();
-                    }
-
-                },5,TimeUnit.MINUTES,() -> {});
-
-    }
-
-    private void voiceMute(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client, String muteRoleId, String[] adminRoles) {
-        if (checkRolePermission(adminRoles, member)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "У вас нет прав на мьют пользователя.");
-            return;
-        }
-        Member mentioned = member.getGuild().getMemberById(mentionedMember.getId());
-        Role role = member.getGuild().getRoleById(muteRoleId);
-        if (role == null) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "Произошла ошибка при выполнении команды. Не найдена роль.");
-            return;
-        }
-        if (mentioned.getRoles().contains(role)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "Пользователь уже получил мьют.");
-            return;
-        }
-
-        TextInput reason = TextInput.create("windowVoiceMute", "Причина мьюта:", TextInputStyle.PARAGRAPH)
-                .setPlaceholder("Напишите причину мьюта здесь")
-                .setMinLength(1)
-                .setMaxLength(400)
-                .setRequired(false)
-                .build();
-
-        TextInput time = TextInput.create("windowVoiceMuteTime", "Время мьюта:", TextInputStyle.PARAGRAPH)
-                .setPlaceholder("Напишите время мьюта здесь (d - дни, h - часы, m - минуты)")
-                .setMinLength(1)
-                .setMaxLength(30)
-                .setRequired(false)
-                .build();
-
-        Modal modal = Modal.create("muteVoiceModal", "Дополнительный ввод")
-                .addActionRows(ActionRow.of(reason), ActionRow.of(time))
-                .build();
-        selectMenuInteractionEvent.replyModal(modal).complete();
-
-        waiter.waitForEvent(ModalInteractionEvent.class,
-                modalInteractionEvent -> checkModalMember(modalInteractionEvent, member, selectMenuInteractionEvent.getMessage(), modal.getId()),
-                modalInteractionEvent ->
-                {
-                    String answer = Objects.requireNonNull(modalInteractionEvent.getValue("windowVoiceMute"))
-                            .getAsString();
-
-                    String timeString = Objects.requireNonNull(modalInteractionEvent.getValue("windowVoiceMuteTime"))
-                            .getAsString();
-
-                    if (timeString.length() != 0) {
-
-                        String[] args = timeString.split("\\s+");
-
-                        AtomicInteger atomicInteger = new AtomicInteger();
-                        AtomicBoolean atomicBoolean = new AtomicBoolean();
-                        for (String arg : args) {
-                            int argsL = arg.length();
-                            char[] dst = new char[(argsL - 1)];
-                            arg.getChars(0, argsL - 1, dst, 0);
-                            char timeunit = arg.charAt(argsL - 1);
-                            switch (String.valueOf(timeunit)
-                                    .toLowerCase()) {
-                                case "h":
-                                    atomicInteger.getAndAdd(Integer.parseInt(String.valueOf(dst)) * 60);
-                                    atomicBoolean.set(true);
-                                    break;
-                                case "m":
-                                    atomicInteger.getAndAdd(Integer.parseInt(String.valueOf(dst)));
-                                    atomicBoolean.set(true);
-                                    break;
-                                case "d":
-                                    atomicInteger.getAndAdd(Integer.parseInt(String.valueOf(dst)) * 1440);
-                                    atomicBoolean.set(true);
-                                    break;
-                            }
-                        }
-                        if (atomicBoolean.get()) {
-                            addTimerToDatabase("voiceMute", atomicInteger.get(), mentionedMember);
-                            if (answer.length() != 0) {
-                                modalInteractionEvent.reply(client.getSuccess() + "Пользователь " + FormatUtil.formatUser(mentionedMember) + " был замьючен по причине: " + answer + " `На время: " + FormatUtil.formatTime(atomicInteger.get()*60000L) + "`").complete();
-                                member.getGuild().addRoleToMember(mentionedMember, role).reason(answer  + " VoiceMute by: " + FormatUtil.formatUser(member.getUser()) + " Time: " + FormatUtil.formatTime(atomicInteger.get()*60000L)).complete();
-                            }
-                            else {
-                                modalInteractionEvent.reply(client.getSuccess() + "Пользователь " + FormatUtil.formatUser(mentionedMember) + " был замьючен." + " `На время: " + FormatUtil.formatTime(atomicInteger.get()*60000L) + "`").complete();
-                                member.getGuild().addRoleToMember(mentionedMember, role).reason("VoiceMute by: " + FormatUtil.formatUser(member.getUser()) + " Time: " + FormatUtil.formatTime(atomicInteger.get()*60000L)).complete();
-                            }
-                        }
-                        else {
-                            ReplyUtil.replyError(modalInteractionEvent, client, "Время не может быть определено, проверьте правильность ввода.");
-                        }
-                    }
-
-
-                },5,TimeUnit.MINUTES,() -> {});
-
-    }
-
-    private void kick(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client, String[] adminRoles) {
-        if (checkRolePermission(adminRoles, member)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "У вас нет прав на кик пользователей.");
+    private void kick(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client) {
+        if (member.hasPermission(Permission.KICK_MEMBERS) && member.canInteract(Objects.requireNonNull(Objects.requireNonNull(selectMenuInteractionEvent.getGuild()).getMember(mentionedMember)))) {
+            selectMenuInteractionEvent.reply(Emoji.ERROR + "У вас нет прав на кик пользователей.").complete();
             return;
         }
 
@@ -662,14 +395,14 @@ public class ModerationCmd extends ModerationCategory {
 
     }
 
-    private void unban(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client, String[] adminRoles) {
-        if (checkRolePermission(adminRoles, member)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "У вас нет прав на разбан пользователей.");
+    private void unban(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client) {
+        if (member.hasPermission(Permission.BAN_MEMBERS) && member.canInteract(Objects.requireNonNull(Objects.requireNonNull(selectMenuInteractionEvent.getGuild()).getMember(mentionedMember)))) {
+            selectMenuInteractionEvent.reply(Emoji.ERROR + "У вас нет прав на разбан пользователей.").complete();
             return;
         }
 
         if (!checkBan(mentionedMember, member.getGuild())) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "Пользователь не находится в бане.");
+            selectMenuInteractionEvent.reply(Emoji.ERROR + "Пользователь не находится в бане.").complete();
             return;
         }
 
@@ -703,50 +436,14 @@ public class ModerationCmd extends ModerationCategory {
 
     }
 
-    private void unban(User mentionedMember, Member member, ButtonInteractionEvent buttonInteractionEvent, CommandClient client, String[] adminRoles) {
-        if (checkRolePermission(adminRoles, member)) {
-            ReplyUtil.replyError(buttonInteractionEvent, client, "У вас нет прав на разбан пользователей.");
-            return;
-        }
-
-        TextInput body = TextInput.create("windowUnBan", "Причина разблокировки:", TextInputStyle.PARAGRAPH)
-                .setPlaceholder("Напишите причину разблокировки здесь")
-                .setMinLength(1)
-                .setMaxLength(400)
-                .setRequired(false)
-                .build();
-
-        Modal modal = Modal.create("unbanModal", "Дополнительный ввод")
-                .addActionRow(body)
-                .build();
-        buttonInteractionEvent.replyModal(modal).complete();
-
-        waiter.waitForEvent(ModalInteractionEvent.class,
-                modalInteractionEvent -> checkModalMember(modalInteractionEvent, member, buttonInteractionEvent.getMessage(), modal.getId()),
-                modalInteractionEvent ->
-                {
-                    String answer = Objects.requireNonNull(modalInteractionEvent.getValue("windowUnBan"))
-                            .getAsString();
-                    if (answer.length() != 0) {
-                        modalInteractionEvent.reply(client.getSuccess() + "Пользователь " + FormatUtil.formatUser(mentionedMember) + " был разбанен по причине: " + answer).complete();
-                        member.getGuild().unban(mentionedMember).reason(answer + " Unban by: " + FormatUtil.formatUser(member.getUser())).complete();
-                    }
-                    else {
-                        modalInteractionEvent.reply(client.getSuccess() + "Пользователь " + FormatUtil.formatUser(mentionedMember) + " был разбанен.").complete();
-                        member.getGuild().unban(mentionedMember).reason("Unban by: " + FormatUtil.formatUser(member.getUser())).complete();
-                    }
-                },5,TimeUnit.MINUTES,() -> {});
-
-    }
-
-    private void ban(User mentionedMember, Member member, SelectMenuInteractionEvent selectMenuInteractionEvent, CommandClient client, String[] adminRoles) {
-        if (checkRolePermission(adminRoles, member)) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "У вас нет прав на бан пользователей.");
+    private void ban(User mentionedMember, Member member, StringSelectInteractionEvent selectMenuInteractionEvent, CommandClient client) {
+        if (member.hasPermission(Permission.BAN_MEMBERS) && member.canInteract(Objects.requireNonNull(Objects.requireNonNull(selectMenuInteractionEvent.getGuild()).getMember(mentionedMember)))) {
+            selectMenuInteractionEvent.reply(Emoji.ERROR + "У вас нет прав на бан пользователей.").complete();
             return;
         }
 
         if (checkBan(mentionedMember, member.getGuild())) {
-            ReplyUtil.replyError(selectMenuInteractionEvent, client, "Пользователь уже находится в бане.");
+            selectMenuInteractionEvent.reply(Emoji.ERROR + "Пользователь уже находится в бане.").complete();
             return;
         }
 
@@ -780,16 +477,6 @@ public class ModerationCmd extends ModerationCategory {
 
     }
 
-    private boolean checkRolePermission(String[] adminRoles, Member member) {
-        List<Role> roleList = member.getRoles();
-        List<String> stringList = Arrays.asList(adminRoles);
-        AtomicBoolean b = new AtomicBoolean(false);
-        roleList.forEach(role -> {
-            if (stringList.contains(role.getId())) b.set(true);
-        });
-        return !b.get();
-    }
-
     private boolean checkModalMember(ModalInteractionEvent modalInteractionEvent, Member member, Message message, String id) {
         if (modalInteractionEvent.getModalId().equals(id)) {
             if (Objects.equals(modalInteractionEvent.getMember(), member)) {
@@ -807,7 +494,7 @@ public class ModerationCmd extends ModerationCategory {
                 return true;
             }
         }
-        ReplyUtil.replyError(buttonInteractionEvent, client, "Вы не можете использовать эту кнопку.");
+        buttonInteractionEvent.reply(Emoji.ERROR + "Вы не можете использовать эту кнопку.").complete();
         return false;
     }
 
@@ -823,7 +510,7 @@ public class ModerationCmd extends ModerationCategory {
                 }
             }
         }
-        ReplyUtil.replyError(selectMenuInteractionEvent, client, "Это меню не может быть использовано вами.");
+        selectMenuInteractionEvent.reply(Emoji.ERROR + "Это меню не может быть использовано вами.").complete();
         return false;
     }
 

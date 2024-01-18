@@ -65,7 +65,7 @@ public class Main {
                 })
                 .addCommands(new SendSuggestionCmd(mongoDatabase,eventWaiter),
                         new SendAnswerToSuggestionCmd(mongoDatabase, eventWaiter),
-                        new ModerationCmd(eventWaiter))
+                        new ModerationCmd(mongoDatabase, eventWaiter))
                 .build();
         JDA jda = JDABuilder
                 .create(Constants.discordToken, Arrays.asList(Constants.INTENTS))
