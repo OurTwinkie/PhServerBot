@@ -24,13 +24,21 @@ public class Listener extends ListenerAdapter {
 
     @Override
     public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent event) {
-        new MemberUpdate().memberJoinMessage(event);
+        try {
+            new MemberUpdate().memberJoinMessage(event);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
         super.onGuildMemberJoin(event);
     }
 
     @Override
     public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent event) {
-        new MemberUpdate().memberLeaveMessage(event);
+        try {
+            new MemberUpdate().memberLeaveMessage(event);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
         super.onGuildMemberRemove(event);
     }
 }
