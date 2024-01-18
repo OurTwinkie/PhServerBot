@@ -318,7 +318,6 @@ public final class FinderUtil
         Matcher userMention = USER_MENTION.matcher(query);
         Matcher fullRefMatch = FULL_USER_REF.matcher(query);
         Matcher idMatch = DISCORD_ID.matcher(query);
-        System.out.println(query + " | " + idMatch + " | " + idMatch.matches());
         if(userMention.matches())
         {
             Member member = guild.getMemberById(userMention.group(1));
@@ -336,7 +335,6 @@ public final class FinderUtil
         }
         if(idMatch.matches())
         {
-            System.out.println(query+3);
             Member member = guild.getMemberById(query);
             if(member!=null)
                 return Collections.singletonList(member);
