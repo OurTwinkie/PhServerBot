@@ -4,9 +4,10 @@ import net.dv8tion.jda.api.Permission;
 import org.twinkie.phbot.library.commandclient.command.Command;
 import org.twinkie.phbot.library.commandclient.command.CommandEvent;
 
-public class AdminCategory extends Command {
-    public AdminCategory() {
-        this.category = new Category("Команды администрации", commandEvent -> commandEvent.getMember().hasPermission(Permission.ADMINISTRATOR));
+public class MemberCommands extends Command {
+
+    public MemberCommands() {
+        this.category = new Category("Обычные команды", commandEvent -> commandEvent.getMember().hasPermission(Permission.MESSAGE_SEND));
     }
     @Override
     protected void execute(CommandEvent event) {

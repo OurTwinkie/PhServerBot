@@ -19,6 +19,7 @@ import org.twinkie.phbot.library.commandclient.commons.waiter.EventWaiter;
 import org.twinkie.phbot.listeners.Listener;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.TimeZone;
 
 public class Main {
@@ -44,12 +45,17 @@ public class Main {
                 .setEmojis(Emoji.SUCCESS, Emoji.WARNING, Emoji.ERROR)
                 .setHelpConsumer(commandEvent -> {
                     StringBuilder builder = new StringBuilder("**"+commandEvent.getSelfUser().getName()+"** команды:\n");
+                    Command.Category category = null;
                     for(Command command : commandEvent.getClient().getCommands())
                     {
                         if(!command.isHidden() && (!command.isOwnerCommand() || commandEvent.isOwner()))
                         {
-
-                            builder.append("\n`").append(Constants.PREFIX).append(command.getName())
+                            if(!Objects.equals(category, command.getCategory()))
+                            {
+                                category = command.getCategory();
+                                builder.append("\n\n  __").append(category==null ? "Без категории" : category.getName()).append("__:\n");
+                            }
+                            builder.append("\n`").append(commandEvent.getClient().getPrefix()).append(command.getName())
                                     .append(command.getArguments()==null ? "`" : " "+command.getArguments()+"`")
                                     .append(" - ").append(command.getHelp());
                         }

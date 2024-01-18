@@ -20,6 +20,7 @@ import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.bson.Document;
+import org.twinkie.phbot.commands.commandscategory.MemberCommands;
 import org.twinkie.phbot.config.Constants;
 import org.twinkie.phbot.config.Emoji;
 import org.twinkie.phbot.library.commandclient.command.Command;
@@ -31,7 +32,7 @@ import java.awt.*;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public class SendSuggestionCmd extends Command {
+public class SendSuggestionCmd extends MemberCommands {
     private final MongoDatabase mongoDatabase;
     private final EventWaiter waiter;
 
