@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import org.twinkie.phbot.commands.ModerationCommands.ModerationCmd;
 import org.twinkie.phbot.commands.admincommands.suggestionmanage.SendAnswerToSuggestionCmd;
 import org.twinkie.phbot.commands.usercommands.SendSuggestionCmd;
 import org.twinkie.phbot.config.Constants;
@@ -63,7 +64,8 @@ public class Main {
                     commandEvent.reply(builder.toString());
                 })
                 .addCommands(new SendSuggestionCmd(mongoDatabase,eventWaiter),
-                        new SendAnswerToSuggestionCmd(mongoDatabase, eventWaiter))
+                        new SendAnswerToSuggestionCmd(mongoDatabase, eventWaiter),
+                        new ModerationCmd(eventWaiter))
                 .build();
         JDA jda = JDABuilder
                 .create(Constants.discordToken, Arrays.asList(Constants.INTENTS))
