@@ -8,8 +8,8 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
-import org.twinkie.phbot.commands.admincommands.suggestionmanage.SendAnswerToSuggestion;
-import org.twinkie.phbot.commands.usercommands.SendSuggestion;
+import org.twinkie.phbot.commands.admincommands.suggestionmanage.SendAnswerToSuggestionCmd;
+import org.twinkie.phbot.commands.usercommands.SendSuggestionCmd;
 import org.twinkie.phbot.config.Constants;
 import org.twinkie.phbot.config.Emoji;
 import org.twinkie.phbot.library.commandclient.command.Command;
@@ -56,8 +56,8 @@ public class Main {
                     }
                     commandEvent.reply(builder.toString());
                 })
-                .addCommands(new SendSuggestion(mongoDatabase,eventWaiter),
-                        new SendAnswerToSuggestion(mongoDatabase, eventWaiter))
+                .addCommands(new SendSuggestionCmd(mongoDatabase,eventWaiter),
+                        new SendAnswerToSuggestionCmd(mongoDatabase, eventWaiter))
                 .build();
         JDA jda = JDABuilder
                 .create(Constants.discordToken, Arrays.asList(Constants.INTENTS))

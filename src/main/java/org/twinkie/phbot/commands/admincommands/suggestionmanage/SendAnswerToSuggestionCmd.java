@@ -33,11 +33,11 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class SendAnswerToSuggestion extends AdminCategory {
+public class SendAnswerToSuggestionCmd extends AdminCategory {
     private final MongoCollection<Document> documentMongoCollection;
     private final EventWaiter eventWaiter;
 
-    public SendAnswerToSuggestion(MongoDatabase mongoDatabase, EventWaiter eventWaiter) {
+    public SendAnswerToSuggestionCmd(MongoDatabase mongoDatabase, EventWaiter eventWaiter) {
         this.documentMongoCollection = mongoDatabase.getCollection("Suggestions");
         ;
         this.eventWaiter = eventWaiter;

@@ -31,11 +31,11 @@ import java.awt.*;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public class SendSuggestion extends Command {
+public class SendSuggestionCmd extends Command {
     private final MongoDatabase mongoDatabase;
     private final EventWaiter waiter;
 
-    public SendSuggestion(MongoDatabase mongoDatabase, EventWaiter waiter) {
+    public SendSuggestionCmd(MongoDatabase mongoDatabase, EventWaiter waiter) {
         this.waiter = waiter;
         this.name = "suggestion";
         this.aliases = new String[]{"idea"};
